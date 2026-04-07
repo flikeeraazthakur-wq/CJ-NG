@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel — CJ-NJ Foods</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    /* ── Admin-only styles ── */
+    .admin-wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 2.5rem 5rem;
+    }
+
+    .admin-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .admin-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      font-weight: 700;
+    }
+    .admin-header h1 span { color: var(--warm); }
+
+    /* Stats bar */
+    .admin-stats {
+      display: flex;
+      gap: 1.2rem;
+      flex-wrap: wrap;
+      margin-bottom: 2.2rem;
+    }
+    .admin-stat {
+      background: #fff;
+      border: 1.5px solid rgba(200,137,75,0.15);
+      border-radius: 14px;
+      padding: 1rem 1.6rem;
+      text-align: center;
+      min-width: 110px;
+    }
+    .admin-stat-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--warm);
+    }
+    .admin-stat-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 0.15rem;
+    }
+
+    /* Add form card */
+    .admin-form-card {
+      background: #fff;
+      border-radius: 18px;
+      padding: 2rem 2.2rem;
+      box-shadow: 0 2px 18px rgba(0,0,0,0.07);
+      margin-bottom: 3rem;
+    }
+    .admin-form-card h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .form-grid .full { grid-column: 1 / -1; }
+
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .form-field label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .form-field input,
+    .form-field select,
+    .form-field textarea {
+      padding: 0.65rem 0.9rem;
+      border: 1.5px solid rgba(26,26,26,0.15);
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      outline: none;
+      background: var(--cream);
+      color: var(--dark);
+      transition: border-color 0.2s;
+    }
+    .form-field input:focus,
+    .form-field select:focus,
+    .form-field textarea:focus { border-color: var(--warm); }
+    .form-field textarea { resize: vertical; min-height: 80px; }
+
+    .form-actions {
+      display: flex;
+      gap: 0.8rem;
+      margin-top: 1.4rem;
+      flex-wrap: wrap;
+    }
+    .btn-save {
+      padding: 0.65rem 2rem;
+      background: var(--dark);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-save:hover { background: var(--warm); }
+    .btn-cancel-edit {
+      padding: 0.65rem 1.5rem;
+      background: transparent;
+      border: 1.5px solid var(--muted);
+      color: var(--muted);
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: none;
+      transition: all 0.2s;
+    }
+    .btn-cancel-edit:hover { border-color: var(--dark); color: var(--dark); }
+
+    /* Image preview */
+    .img-preview-wrap {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 0.5rem;
+    }
+    #imgPreview {
+      width: 64px; height: 64px;
+      border-radius: 10px;
+      object-fit: cover;
+      border: 1.5px solid rgba(200,137,75,0.25);
+      display: none;
+    }
+
+    /* Dish table */
+    .admin-table-wrap {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 2px 18px rgba(0,0,0,0.07);
+      overflow: hidden;
+    }
+    .admin-table-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.4rem 1.8rem 1rem;
+      border-bottom: 1.5px solid rgba(200,137,75,0.1);
+      flex-wrap: wrap;
+      gap: 0.8rem;
+    }
+    .admin-table-head h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+    }
+    .admin-search-bar {
+      padding: 0.5rem 1rem;
+      border: 1.5px solid rgba(26,26,26,0.15);
+      border-radius: 50px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+      outline: none;
+      background: var(--cream);
+      min-width: 220px;
+    }
+    .admin-search-bar:focus { border-color: var(--warm); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    thead {
+      background: var(--cream);
+    }
+    th {
+      padding: 0.85rem 1.2rem;
+      text-align: left;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    td {
+      padding: 0.9rem 1.2rem;
+      border-top: 1px solid rgba(0,0,0,0.05);
+      font-size: 0.88rem;
+      vertical-align: middle;
+    }
+    tr:hover td { background: rgba(200,137,75,0.04); }
+
+    .td-img {
+      width: 52px; height: 52px;
+      object-fit: cover;
+      border-radius: 8px;
+      background: var(--warm-light);
+      display: block;
+    }
+    .td-img-placeholder {
+      width: 52px; height: 52px;
+      border-radius: 8px;
+      background: var(--warm-light);
+      display: grid;
+      place-items: center;
+      font-size: 1.6rem;
+    }
+
+    .td-name { font-weight: 600; }
+    .td-cat {
+      display: inline-block;
+      padding: 0.22rem 0.7rem;
+      border-radius: 50px;
+      background: rgba(200,137,75,0.12);
+      color: var(--warm);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .td-price { font-weight: 700; color: var(--dark); }
+    .td-badge {
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .btn-edit-row {
+      padding: 0.38rem 1rem;
+      background: var(--cream);
+      border: 1.5px solid rgba(26,26,26,0.18);
+      border-radius: 7px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-right: 0.4rem;
+      transition: all 0.2s;
+    }
+    .btn-edit-row:hover { background: var(--dark); color: #fff; border-color: var(--dark); }
+
+    .btn-delete-row {
+      padding: 0.38rem 1rem;
+      background: transparent;
+      border: 1.5px solid rgba(192,57,43,0.3);
+      color: #c0392b;
+      border-radius: 7px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-delete-row:hover { background: #c0392b; color: #fff; border-color: #c0392b; }
+
+    .form-msg {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-top: 0.8rem;
+      min-height: 1.2rem;
+    }
+    .form-msg.ok  { color: #27ae60; }
+    .form-msg.err { color: #c0392b; }
+
+    @media (max-width: 700px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .admin-wrap { padding: 1.2rem 1rem 4rem; }
+      td:nth-child(4), th:nth-child(4),
+      td:nth-child(5), th:nth-child(5) { display: none; }
+    }
+
+    /* Admin orders tab */
+    .admin-tabs { display:flex;gap:0.6rem;margin-bottom:2rem;border-bottom:1.5px solid rgba(200,137,75,0.15); }
+    .admin-tab-btn { padding:0.6rem 1.4rem;border:none;background:none;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;color:var(--muted);border-bottom:2.5px solid transparent;margin-bottom:-1.5px;transition:all 0.2s; }
+    .admin-tab-btn.active { color:var(--dark);border-bottom-color:var(--warm); }
+    .status-select { padding:0.3rem 0.6rem;border-radius:7px;border:1.5px solid rgba(26,26,26,0.15);font-family:'DM Sans',sans-serif;font-size:0.8rem;font-weight:600;background:var(--cream);cursor:pointer;outline:none; }
+    .status-select:focus { border-color:var(--warm); }
+
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a class="nav-logo" href="homepage.html">
+    <img src="images/logo.jpg" alt="CJ-NJ Logo" class="nav-logo-img"/>
+  </a>
+  <ul class="nav-links">
+    <li><a href="homepage.html">Home</a></li>
+    <li><a href="menu.html">Menu</a></li>
+    <li><a href="admin.html" class="nav-active">Admin</a></li>
+  </ul>
+  <div class="nav-auth"></div>
+  <button class="nav-hamburger" id="hamburger"><span></span><span></span><span></span></button>
+</nav>
+<div class="nav-mobile" id="mobileMenu">
+  <a href="homepage.html">Home</a>
+  <a href="menu.html">Menu</a>
+  <a href="admin.html">Admin Panel</a>
+  <div class="nav-mobile-auth"></div>
+</div>
+
+<!-- PAGE BODY -->
+<div style="padding-top: var(--nav-h); background: var(--cream); min-height: 100vh;">
+<div class="admin-wrap">
+
+  <!-- Header -->
+  <div class="admin-header">
+    <h1>Admin <span>Panel</span></h1>
+    <a href="menu.html" style="font-size:0.85rem; color:var(--warm); font-weight:600; text-decoration:none;">← View Live Menu</a>
+  </div>
+
+  <!-- Stats -->
+  <div class="admin-stats" id="adminStats">
+    <div class="admin-stat"><div class="admin-stat-num" id="statTotal">—</div><div class="admin-stat-label">Total Dishes</div></div>
+    <div class="admin-stat"><div class="admin-stat-num" id="statCats">—</div><div class="admin-stat-label">Categories</div></div>
+    <div class="admin-stat"><div class="admin-stat-num" id="statAvg">—</div><div class="admin-stat-label">Avg Price</div></div>
+  </div>
+
+  <!-- Add / Edit Form -->
+  <div class="admin-tabs">
+    <button class="admin-tab-btn active" id="aTabDishes" onclick="aSwitch('dishes')"> Dishes</button>
+    <button class="admin-tab-btn"        id="aTabOrders" onclick="aSwitch('orders')"> Orders</button>
+  </div>
+
+  <div id="aPanelDishes">
+  <div class="admin-form-card">
+    <h2 id="formTitle"> Add New Dish</h2>
+    <input type="hidden" id="editId" value=""/>
+
+    <div class="form-grid">
+      <div class="form-field">
+        <label>Dish Name *</label>
+        <input type="text" id="fName" placeholder="e.g. Butter Chicken"/>
+      </div>
+      <div class="form-field">
+        <label>Category *</label>
+        <select id="fCategory">
+          <option value="">— Select —</option>
+          <option value="noodles">Noodles</option>
+          <option value="seafood">Seafood</option>
+          <option value="pasta">Pasta</option>
+          <option value="grill">Grill &amp; BBQ</option>
+          <option value="chicken">Chicken</option>
+          <option value="rice">Rice</option>
+          <option value="veg">Vegetarian</option>
+          <option value="dessert">Desserts</option>
+        </select>
+      </div>
+      <div class="form-field full">
+        <label>Description *</label>
+        <textarea id="fDesc" placeholder="Describe the dish…"></textarea>
+      </div>
+      <div class="form-field">
+        <label>Price ($) *</label>
+        <input type="number" id="fPrice" placeholder="12.99" step="0.01" min="0.01"/>
+      </div>
+      <div class="form-field">
+        <label>Badge <span style="font-weight:400;text-transform:none">(optional, e.g. "Popular")</span></label>
+        <input type="text" id="fBadge" placeholder="e.g. Chef's Pick"/>
+      </div>
+      <div class="form-field full">
+        <label>Image</label>
+        <input type="text" id="fImagePath" placeholder="images/myfile.jpg — or upload below"/>
+        <div class="img-preview-wrap" style="margin-top:0.6rem">
+          <input type="file" id="fImageFile" accept="image/*" onchange="previewImage(this)" style="font-size:0.85rem"/>
+          <img id="imgPreview" alt="preview"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-save" onclick="saveDish()">Save Dish</button>
+      <button class="btn-cancel-edit" id="cancelEditBtn" onclick="cancelEdit()">Cancel Edit</button>
+    </div>
+    <p class="form-msg" id="formMsg"></p>
+  </div>
+
+  <!-- Dishes Table -->
+  <div class="admin-table-wrap">
+    <div class="admin-table-head">
+      <h2>All Dishes</h2>
+      <input class="admin-search-bar" type="text" placeholder=" Search table…" oninput="filterTable(this.value)"/>
+    </div>
+    <div style="overflow-x:auto">
+      <table id="dishTable">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Badge</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="dishTableBody">
+          <tr><td colspan="6" style="text-align:center;padding:2.5rem;color:var(--muted)">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<footer>
+  <p>© 2026 <span>Recipe Book</span>. Admin Panel.</p>
+</footer>
+
+<script src="script.js"></script>
+<script>
+/* ── Auth + admin guard ─────────────────────────────────── */
+(function() {
+  try {
+    const user = JSON.parse(localStorage.getItem('cjnj_user'));
+    if (!user) { window.location.replace('homepage.html#login'); return; }
+    if (!user.is_admin) { window.location.replace('homepage.html'); return; }
+  } catch(e) {
+    window.location.replace('homepage.html#login');
+  }
+})();
+
+function getAdminUser() {
+  try { return JSON.parse(localStorage.getItem('cjnj_user')); } catch { return null; }
+}
+
+/* ── Load dishes into table ─────────────────────────────── */
+let allDishes = [];
+
+async function loadDishes() {
+  try {
+    const res  = await fetch('get_dishes.php');
+    const data = await res.json();
+    if (!data.success) { showMsg('Failed to load dishes', 'err'); return; }
+    allDishes = data.dishes;
+    renderTable(allDishes);
+    updateStats(allDishes);
+  } catch(e) {
+    document.getElementById('dishTableBody').innerHTML =
+      '<tr><td colspan="6" style="text-align:center;color:#c0392b;padding:2rem">Could not connect to server.</td></tr>';
+  }
+}
+
+function renderTable(dishes) {
+  const tbody = document.getElementById('dishTableBody');
+  if (!dishes.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2.5rem;color:var(--muted)">No dishes found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = dishes.map(d => `
+    <tr data-id="${d.id}">
+      <td>
+        ${d.image_path
+          ? `<img class="td-img" src="${escHtml(d.image_path)}" alt="${escHtml(d.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'"/><div class="td-img-placeholder" style="display:none">🍽️</div>`
+          : `<div class="td-img-placeholder"></div>`}
+      </td>
+      <td class="td-name">${escHtml(d.name)}</td>
+      <td><span class="td-cat">${escHtml(d.category)}</span></td>
+      <td class="td-price">$${parseFloat(d.price).toFixed(2)}</td>
+      <td class="td-badge">${d.badge ? escHtml(d.badge) : '—'}</td>
+      <td>
+        <button class="btn-edit-row"   onclick="startEdit(${d.id})"> Edit</button>
+        <button class="btn-delete-row" onclick="deleteDish(${d.id}, '${escHtml(d.name)}')">🗑 Delete</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function updateStats(dishes) {
+  const cats = [...new Set(dishes.map(d => d.category))].length;
+  const avg  = dishes.length ? (dishes.reduce((s,d) => s + parseFloat(d.price), 0) / dishes.length).toFixed(2) : 0;
+  document.getElementById('statTotal').textContent = dishes.length;
+  document.getElementById('statCats').textContent  = cats;
+  document.getElementById('statAvg').textContent   = '$' + avg;
+}
+
+function filterTable(q) {
+  const lower = q.toLowerCase();
+  renderTable(allDishes.filter(d =>
+    d.name.toLowerCase().includes(lower) ||
+    d.category.toLowerCase().includes(lower) ||
+    (d.badge || '').toLowerCase().includes(lower)
+  ));
+}
+
+/* ── Add / Save dish ────────────────────────────────────── */
+async function saveDish() {
+  const user = getAdminUser();
+  if (!user) return;
+
+  const id    = document.getElementById('editId').value;
+  const name  = document.getElementById('fName').value.trim();
+  const cat   = document.getElementById('fCategory').value;
+  const desc  = document.getElementById('fDesc').value.trim();
+  const price = document.getElementById('fPrice').value;
+  const badge = document.getElementById('fBadge').value.trim();
+  const imgPath = document.getElementById('fImagePath').value.trim();
+  const imgFile = document.getElementById('fImageFile').files[0];
+
+  if (!name || !cat || !desc || !price) { showMsg('Please fill in all required fields.', 'err'); return; }
+
+  const fd = new FormData();
+  fd.append('email',       user.email);
+  fd.append('action',      id ? 'edit' : 'add');
+  if (id) fd.append('id',  id);
+  fd.append('name',        name);
+  fd.append('category',    cat);
+  fd.append('description', desc);
+  fd.append('price',       price);
+  fd.append('badge',       badge);
+  fd.append('image_path',  imgPath);
+  if (imgFile) fd.append('image', imgFile);
+
+  const btn = document.querySelector('.btn-save');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  try {
+    const res  = await fetch('admin_dishes.php', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.success) {
+      showMsg(data.message, 'ok');
+      clearForm();
+      await loadDishes();
+      showToast(data.message + ' 🎉');
+    } else {
+      showMsg(data.message, 'err');
+    }
+  } catch {
+    showMsg('Server error. Please try again.', 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Save Dish';
+  }
+}
+
+/* ── Edit: populate form ────────────────────────────────── */
+function startEdit(id) {
+  const dish = allDishes.find(d => d.id == id);
+  if (!dish) return;
+
+  document.getElementById('editId').value       = dish.id;
+  document.getElementById('fName').value        = dish.name;
+  document.getElementById('fCategory').value    = dish.category;
+  document.getElementById('fDesc').value        = dish.description;
+  document.getElementById('fPrice').value       = dish.price;
+  document.getElementById('fBadge').value       = dish.badge || '';
+  document.getElementById('fImagePath').value   = dish.image_path || '';
+
+  const preview = document.getElementById('imgPreview');
+  if (dish.image_path) { preview.src = dish.image_path; preview.style.display = 'block'; }
+  else { preview.style.display = 'none'; }
+
+  document.getElementById('formTitle').textContent     = ' Editing: ' + dish.name;
+  document.getElementById('cancelEditBtn').style.display = 'inline-block';
+
+  // Scroll to form
+  document.querySelector('.admin-form-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function cancelEdit() {
+  clearForm();
+  document.getElementById('formTitle').textContent       = ' Add New Dish';
+  document.getElementById('cancelEditBtn').style.display = 'none';
+}
+
+/* ── Delete dish ────────────────────────────────────────── */
+async function deleteDish(id, name) {
+  if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+
+  const user = getAdminUser();
+  const fd   = new FormData();
+  fd.append('email',  user.email);
+  fd.append('action', 'delete');
+  fd.append('id',     id);
+
+  try {
+    const res  = await fetch('admin_dishes.php', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.success) {
+      showToast(` "${name}" deleted`);
+      await loadDishes();
+    } else {
+      showMsg(data.message, 'err');
+    }
+  } catch {
+    showMsg('Server error.', 'err');
+  }
+}
+
+/* ── Helpers ────────────────────────────────────────────── */
+function clearForm() {
+  ['editId','fName','fDesc','fPrice','fBadge','fImagePath'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('fCategory').value = '';
+  document.getElementById('fImageFile').value = '';
+  document.getElementById('imgPreview').style.display = 'none';
+  document.getElementById('formMsg').textContent = '';
+}
+
+function showMsg(msg, type) {
+  const el = document.getElementById('formMsg');
+  el.textContent = msg;
+  el.className   = 'form-msg ' + type;
+}
+
+function previewImage(input) {
+  const preview = document.getElementById('imgPreview');
+  if (input.files && input.files[0]) {
+    preview.src = URL.createObjectURL(input.files[0]);
+    preview.style.display = 'block';
+  }
+}
+
+function escHtml(str) {
+  return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+
+/* ── Admin tabs ─────────────────────────────────────── */
+function aSwitch(tab) {
+  const dishes = tab === 'dishes';
+  document.getElementById('aPanelDishes').style.display = dishes ? '' : 'none';
+  document.getElementById('aPanelOrders').style.display = dishes ? 'none' : '';
+  document.getElementById('aTabDishes').classList.toggle('active', dishes);
+  document.getElementById('aTabOrders').classList.toggle('active', !dishes);
+  if (!dishes) loadAllOrders();
+}
+
+/* ── Admin: load all orders ─────────────────────────── */
+async function loadAllOrders() {
+  const tbody = document.getElementById('allOrdersBody');
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--muted)">Loading…</td></tr>';
+  try {
+    const data = await fetch('get_orders.php?email=' + encodeURIComponent(getAdminUser().email)).then(r => r.json());
+    if (!data.success) throw new Error();
+    if (!data.orders.length) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--muted)">No orders yet.</td></tr>';
+      return;
+    }
+    const statuses = ['pending','confirmed','preparing','ready','delivered','cancelled'];
+    tbody.innerHTML = data.orders.map(o => `
+      <tr>
+        <td><strong>#${o.id}</strong></td>
+        <td><div style="font-weight:600;font-size:0.88rem">${escHtml(o.user_name)}</div>
+            <div style="font-size:0.75rem;color:var(--muted)">${escHtml(o.user_email)}</div></td>
+        <td style="font-size:0.82rem;color:var(--muted);max-width:200px">
+          ${o.items.map(i => `${i.qty}× ${escHtml(i.dish_name)}`).join('<br/>')}
+        </td>
+        <td style="font-weight:700">$${parseFloat(o.total).toFixed(2)}</td>
+        <td style="font-size:0.8rem;color:var(--muted);max-width:120px">${o.note ? escHtml(o.note) : '—'}</td>
+        <td style="font-size:0.78rem;color:var(--muted);white-space:nowrap">${fmtDate(o.created_at)}</td>
+        <td>
+          <select class="status-select" onchange="updateStatus(${o.id}, this.value)">
+            ${statuses.map(s => `<option value="${s}" ${s===o.status?'selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`).join('')}
+          </select>
+        </td>
+      </tr>`).join('');
+  } catch {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#c0392b;padding:2rem">Failed to load orders.</td></tr>';
+  }
+}
+
+async function updateStatus(orderId, status) {
+  const user = getAdminUser();
+  const fd = new FormData();
+  fd.append('email', user.email);
+  fd.append('order_id', orderId);
+  fd.append('status', status);
+  try {
+    const data = await fetch('update_order_status.php', { method:'POST', body:fd }).then(r => r.json());
+    if (data.success) showToast('Order #' + orderId + ' → ' + status);
+    else showToast(' ' + data.message);
+  } catch { showToast(' Server error'); }
+}
+
+function fmtDate(str) {
+  const d = new Date(str);
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' ' +
+         d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+}
+
+// Init
+loadDishes();
+</script>
+</body>
+</html>

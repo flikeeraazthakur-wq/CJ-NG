@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CJ-NJ Foods</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600&family=Caveat:wght@700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<!-- ============================================================
+     NAVBAR SECTION
+============================================================ -->
+<nav class="navbar">
+  <a class="nav-logo" href="#">
+    <img src="images/logo.jpg" alt="CJ-NJ Logo" class="nav-logo-img"/>
+  </a>
+
+  <ul class="nav-links">
+    <li><a href="#">Home</a></li>
+    <li><a href="menu.html">Menu</a></li>
+    <li><a href="menu.html">Order</a></li>
+    <li><a href="#about">Restaurant</a></li>
+    <li><a href="#about">About Us</a></li>
+    <li><a href="#">Contact Us</a></li>
+  </ul>
+
+  <div class="nav-auth">
+    <button class="btn-login">Login</button>
+    <button class="btn-signup">Sign Up</button>
+  </div>
+
+  <button class="nav-hamburger" id="hamburger" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- Mobile dropdown -->
+<div class="nav-mobile" id="mobileMenu">
+  <a href="#">Home</a>
+  <a href="menu.html">Menu</a>
+  <a href="menu.html">Order</a>
+  <a href="#about">Restaurant</a>
+  <a href="#about">About Us</a>
+  <a href="#">Contact Us</a>
+  <div class="nav-mobile-auth">
+    <button class="btn-login" style="flex:1">Login</button>
+    <button class="btn-signup" style="flex:1">Sign Up</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     HERO SECTION
+============================================================ -->
+<section class="hero">
+  <div class="deco deco-1">🧅</div>
+  <div class="deco deco-2">🌿</div>
+  <div class="deco deco-3">🌿</div>
+  <div class="deco deco-4">🧅</div>
+
+  <p class="hero-eyebrow">1000+ Recipes &amp; Counting</p>
+  <h1 class="hero-title">Discover Your<br/><em>Inner Chef.</em></h1>
+  <p class="hero-sub">
+    Learn to cook 1000+ recipes sitting at home with us. Explore your
+    favorite fast food, lunch, dinner and more.
+  </p>
+
+  <div class="carousel-wrapper">
+    <button class="carousel-btn prev" onclick="prevDish()">&#8592;</button>
+
+    <div class="carousel-track" id="carouselTrack">
+
+      <!-- 1 · Chicken Noodles — far left small -->
+      <div class="dish-item">
+        <div class="dish-circle sz-xs">
+          <img src="images/chowmein.jpg" alt="Chicken Noodles"
+               onerror="this.style.display='none';this.parentElement.innerHTML='🍜'"/>
+        </div>
+      </div>
+
+      <div class="connector"></div>
+
+      <!-- 2 · Shrimp Fry — left medium -->
+      <div class="dish-item">
+        <div class="dish-circle sz-sm">
+          <img src="images/shirmp.jpg" alt="Shrimp Fry"
+               onerror="this.style.display='none';this.parentElement.innerHTML='🦐'"/>
+        </div>
+      </div>
+
+      <div class="connector"></div>
+
+      <!-- 3 · Pasta — MAIN center (featured) -->
+      <div class="dish-item">
+        <div class="dish-circle sz-main">
+          <img src="images/pasta.jpg" alt="Pasta"
+               onerror="this.style.display='none';this.parentElement.innerHTML='🍝'"/>
+        </div>
+        <span class="dish-label" id="dishLabel">Pasta</span>
+      </div>
+
+      <div class="connector"></div>
+
+      <!-- 4 · BBQ Stick — right medium -->
+      <div class="dish-item">
+        <div class="dish-circle sz-sm">
+          <img src="images/BBQ Stick.jpg" alt="BBQ Stick"
+               onerror="this.style.display='none';this.parentElement.innerHTML='🍖'"/>
+        </div>
+      </div>
+
+      <div class="connector"></div>
+
+      <!-- 5 · Buffalo Wing — far right small -->
+      <div class="dish-item">
+        <div class="dish-circle sz-xs">
+          <img src="images/buffalowing.jpg" alt="Buffalo Wing"
+               onerror="this.style.display='none';this.parentElement.innerHTML='🍗'"/>
+        </div>
+      </div>
+
+    </div><!-- /carousel-track -->
+
+    <button class="carousel-btn next" onclick="nextDish()">&#8594;</button>
+  </div><!-- /carousel-wrapper -->
+
+  <div class="hero-cta">
+    <button class="btn-cta-fill">Read Recipes</button>
+    <button class="btn-cta-outline">Open Catalog</button>
+  </div>
+</section>
+
+<!-- ============================================================
+     TRENDING RECIPES
+============================================================ -->
+<section class="section-trending reveal" id="trending">
+  <div class="section-head">
+    <h2>Trending Food Recipe</h2>
+    <a class="link-more" href="#">View More . . .</a>
+  </div>
+
+  <div class="recipes-grid">
+
+    <div class="recipe-card">
+      <div class="card-thumb">
+        <img src="images/pasta.jpg" alt="Pasta"
+             onerror="this.style.display='none';this.parentElement.innerHTML='🍝'"/>
+      </div>
+      <div class="card-foot">
+        <p class="card-dish-name">Pasta</p>
+        <p>Read Recipes</p>
+        <div class="underline-bar"></div>
+      </div>
+    </div>
+
+    <div class="recipe-card">
+      <div class="card-thumb">
+        <img src="images/BBQ Stick.jpg" alt="BBQ Stick"
+             onerror="this.style.display='none';this.parentElement.innerHTML='🍖'"/>
+      </div>
+      <div class="card-foot">
+        <p class="card-dish-name">BBQ Stick</p>
+        <p>Read Recipes</p>
+        <div class="underline-bar"></div>
+      </div>
+    </div>
+
+    <div class="recipe-card">
+      <div class="card-thumb">
+        <img src="images/shirmp.jpg" alt="Shrimp Fry"
+             onerror="this.style.display='none';this.parentElement.innerHTML='🦐'"/>
+      </div>
+      <div class="card-foot">
+        <p class="card-dish-name">Shrimp Fry</p>
+        <p>Read Recipes</p>
+        <div class="underline-bar"></div>
+      </div>
+    </div>
+
+    <div class="recipe-card">
+      <div class="card-thumb">
+        <img src="images/chowmein.jpg" alt="Chicken Noodles"
+             onerror="this.style.display='none';this.parentElement.innerHTML='🍜'"/>
+      </div>
+      <div class="card-foot">
+        <p class="card-dish-name">Chicken Noodles</p>
+        <p>Read Recipes</p>
+        <div class="underline-bar"></div>
+      </div>
+    </div>
+
+    <div class="recipe-card">
+      <div class="card-thumb">
+        <img src="images/buffalowing.jpg" alt="Buffalo Wing"
+             onerror="this.style.display='none';this.parentElement.innerHTML='🍗'"/>
+      </div>
+      <div class="card-foot">
+        <p class="card-dish-name">Buffalo Wing</p>
+        <p>Read Recipes</p>
+        <div class="underline-bar"></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================
+     ABOUT US
+============================================================ -->
+<section class="section-about reveal" id="about">
+
+  <div>
+    <span class="about-label">Our Story</span>
+    <h2 class="about-title">
+      A Kitchen Born from<br/><span>Passion &amp; Flavor</span>
+    </h2>
+    <p class="about-p">
+      We believe that cooking is an art everyone deserves to enjoy. Founded in
+      the heart of the city, Recipe Book brings centuries-old culinary
+      traditions together with modern technique — giving you the tools and
+      inspiration to create unforgettable meals at home.
+    </p>
+    <p class="about-p">
+      From quick weeknight dinners to elaborate weekend feasts, our curated
+      library of recipes is crafted by professional chefs who want to share
+      their love of food with the world. Join our growing community and start
+      your culinary journey today.
+    </p>
+    <div class="stats-row">
+      <div>
+        <div class="stat-num">1,200+</div>
+        <div class="stat-label">Recipes</div>
+      </div>
+      <div>
+        <div class="stat-num">48K</div>
+        <div class="stat-label">Happy Cooks</div>
+      </div>
+      <div>
+        <div class="stat-num">120</div>
+        <div class="stat-label">Cuisines</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="about-photos">
+    <div class="about-photo tall">
+      <img src="images/pasta.jpg" alt="Pasta"
+           onerror="this.style.display='none';this.parentElement.innerHTML='🍝'"/>
+    </div>
+    <div class="about-photo">
+      <img src="images/shirmp.jpg" alt="Shrimp Fry"
+           onerror="this.style.display='none';this.parentElement.innerHTML='🦐'"/>
+    </div>
+    <div class="about-photo">
+      <img src="images/buffalowing.jpg" alt="Buffalo Wing"
+           onerror="this.style.display='none';this.parentElement.innerHTML='🍗'"/>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============================================================
+     FEATURES
+============================================================ -->
+<section class="section-features reveal">
+  <h2>Why Cook With Us?</h2>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feat-icon"></div>
+      <h3 class="feat-title">Step-by-Step Recipes</h3>
+      <p class="feat-desc">Every recipe is broken into simple steps with clear photos and pro tips so you never get lost in the kitchen.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feat-icon"></div>
+      <h3 class="feat-title">Order &amp; Delivery</h3>
+      <p class="feat-desc">Not feeling like cooking? Order straight from our restaurant partners and get restaurant-quality food delivered to your door.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feat-icon"></div>
+      <h3 class="feat-title">Global Cuisines</h3>
+      <p class="feat-desc">Explore dishes from over 120 world cuisines — from aromatic South Asian curries to classic French pastries and everything in between.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     FOOTER SECTION
+============================================================ -->
+<footer>
+  <p>© 2026 <span>Recipe Book</span>. All rights reserved. Made with love for food lovers.</p>
+</footer>
+
+<!-- ============================================================
+     LOGIN MODAL
+============================================================ -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('loginModal')">&#x2715;</button>
+    <h2>Login</h2>
+    <p class="modal-error" id="loginModalError"></p>
+    <div class="modal-field">
+      <label>Email</label>
+      <input type="email" id="loginEmail" placeholder="you@email.com" />
+    </div>
+    <div class="modal-field">
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="••••••••" />
+    </div>
+    <button class="modal-submit" id="loginBtn">Login</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     SIGN UP MODAL
+============================================================ -->
+<div class="modal-overlay" id="signupModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('signupModal')">&#x2715;</button>
+    <h2>Sign Up</h2>
+    <p class="modal-error" id="signupModalError"></p>
+    <div class="modal-field">
+      <label>Name</label>
+      <input type="text" id="signupName" placeholder="Your name" />
+    </div>
+    <div class="modal-field">
+      <label>Email</label>
+      <input type="email" id="signupEmail" placeholder="you@email.com" />
+    </div>
+    <div class="modal-field">
+      <label>Password</label>
+      <input type="password" id="signupPassword" placeholder="••••••••" />
+    </div>
+    <button class="modal-submit" id="signupBtn">Sign Up</button>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
