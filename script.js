@@ -32,8 +32,8 @@ function refreshNavAuth() {
 function logout() {
   clearUser();
   refreshNavAuth();
-  // If on menu page, redirect home
-  if (window.location.pathname.includes('menu.html')) {
+  // Redirect home from any protected page (not menu — menu is now public)
+  if (window.location.pathname.includes('admin.html')) {
     window.location.href = 'homepage.html';
   }
 }
@@ -165,19 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
     revealEls.forEach(el => obs.observe(el));
   }
 
-  /* ============================================================
-     MENU LINK — guard
-  ============================================================ */
-  document.querySelectorAll('a[href="menu.html"], a[href$="/menu.html"]').forEach(link => {
-    link.addEventListener('click', e => {
-      if (!isLoggedIn()) {
-        e.preventDefault();
-        openModal('loginModal');
-        const errEl = document.getElementById('loginModalError');
-        if (errEl) errEl.textContent = 'Please log in to view the Menu.';
-      }
-    });
-  });
+  // Menu is now public — no login guard needed here
 
   /* init */
   refreshNavAuth();

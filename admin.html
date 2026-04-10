@@ -313,11 +313,11 @@
 <!-- NAVBAR -->
 <nav class="navbar">
   <a class="nav-logo" href="homepage.html">
-    <img src="images/logo.jpg" alt="CJ-NJ Logo" class="nav-logo-img"/>
+    <img src="images/logo.jpeg" alt="CJ-NJ Logo" class="nav-logo-img"/>
   </a>
   <ul class="nav-links">
     <li><a href="homepage.html">Home</a></li>
-    <li><a href="menu.html">Menu</a></li>
+    
     <li><a href="admin.html" class="nav-active">Admin</a></li>
   </ul>
   <div class="nav-auth"></div>
@@ -410,7 +410,7 @@
   <div class="admin-table-wrap">
     <div class="admin-table-head">
       <h2>All Dishes</h2>
-      <input class="admin-search-bar" type="text" placeholder=" Search table…" oninput="filterTable(this.value)"/>
+      <input class="admin-search-bar" type="text" placeholder="🔍 Search table…" oninput="filterTable(this.value)"/>
     </div>
     <div style="overflow-x:auto">
       <table id="dishTable">
@@ -483,7 +483,7 @@ function renderTable(dishes) {
       <td>
         ${d.image_path
           ? `<img class="td-img" src="${escHtml(d.image_path)}" alt="${escHtml(d.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'"/><div class="td-img-placeholder" style="display:none">🍽️</div>`
-          : `<div class="td-img-placeholder"></div>`}
+          : `<div class="td-img-placeholder">🍽️</div>`}
       </td>
       <td class="td-name">${escHtml(d.name)}</td>
       <td><span class="td-cat">${escHtml(d.category)}</span></td>
@@ -658,12 +658,12 @@ function aSwitch(tab) {
 /* ── Admin: load all orders ─────────────────────────── */
 async function loadAllOrders() {
   const tbody = document.getElementById('allOrdersBody');
-  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--muted)">Loading…</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--muted)">Loading…</td></tr>';
   try {
     const data = await fetch('get_orders.php?email=' + encodeURIComponent(getAdminUser().email)).then(r => r.json());
     if (!data.success) throw new Error();
     if (!data.orders.length) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--muted)">No orders yet.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--muted)">No orders yet.</td></tr>';
       return;
     }
     const statuses = ['pending','confirmed','preparing','ready','delivered','cancelled'];
@@ -676,6 +676,8 @@ async function loadAllOrders() {
           ${o.items.map(i => `${i.qty}× ${escHtml(i.dish_name)}`).join('<br/>')}
         </td>
         <td style="font-weight:700">$${parseFloat(o.total).toFixed(2)}</td>
+        <td style="font-size:0.8rem">${escHtml(o.phone||'—')}</td>
+        <td style="font-size:0.78rem;color:var(--muted);max-width:180px">${escHtml(o.delivery_address||'—')}</td>
         <td style="font-size:0.8rem;color:var(--muted);max-width:120px">${o.note ? escHtml(o.note) : '—'}</td>
         <td style="font-size:0.78rem;color:var(--muted);white-space:nowrap">${fmtDate(o.created_at)}</td>
         <td>
@@ -685,7 +687,7 @@ async function loadAllOrders() {
         </td>
       </tr>`).join('');
   } catch {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#c0392b;padding:2rem">Failed to load orders.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#c0392b;padding:2rem">Failed to load orders.</td></tr>';
   }
 }
 
