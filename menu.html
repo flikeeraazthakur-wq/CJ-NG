@@ -545,10 +545,12 @@
 <script src="script.js"></script>
 <script>
 /* ── session ── */
-const currentUser = getUser();
-const isLoggedIn  = !!currentUser;
+/* FIX: use getUser() from script.js instead of re-declaring localStorage logic
+   which caused "Identifier 'isLoggedIn' has already been declared" crash      */
+var currentUser = getUser();
+var isLoggedIn  = !!currentUser;
 
-let allDishes = [], activeCategory = 'all', cart = [];
+var allDishes = [], activeCategory = 'all', cart = [];
 
 /* ── boot — runs after DOM + script.js are ready ── */
 window.addEventListener('load', function() {
@@ -563,7 +565,7 @@ window.addEventListener('load', function() {
 
 /* ── tabs ── */
 function switchTab(tab) {
-  const isMenu = tab === 'menu';
+  var isMenu = tab === 'menu';
   document.getElementById('panelMenu').style.display   = isMenu ? '' : 'none';
   document.getElementById('panelOrders').style.display = isMenu ? 'none' : '';
   document.getElementById('tabMenu').classList.toggle('active', isMenu);
@@ -582,8 +584,8 @@ function closeLPandOpen(modal) { closeLoginPrompt(); openModal(modal); }
 /* ── load menu ── */
 async function loadMenu() {
   try {
-    const res  = await fetch('get_dishes.php');
-    const data = await res.json();
+    var res  = await fetch('get_dishes.php');
+    var data = await res.json();
     if (!data.success) throw new Error('API error');
     allDishes = data.dishes;
     renderMenu(allDishes);
@@ -594,9 +596,9 @@ async function loadMenu() {
 }
 
 function renderMenu(dishes) {
-  const grid  = document.getElementById('menuGrid');
-  const empty = document.getElementById('menuEmpty');
-  const count = document.getElementById('menuCount');
+  var grid  = document.getElementById('menuGrid');
+  var empty = document.getElementById('menuEmpty');
+  var count = document.getElementById('menuCount');
   if (!dishes.length) {
     grid.innerHTML = '';
     empty.style.display = 'flex';
