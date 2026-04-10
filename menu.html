@@ -545,7 +545,7 @@
 <script src="script.js"></script>
 <script>
 /* ── session ── */
-const currentUser = (() => { try { return JSON.parse(localStorage.getItem('cjnj_user')); } catch { return null; } })();
+const currentUser = getUser();
 const isLoggedIn  = !!currentUser;
 
 let allDishes = [], activeCategory = 'all', cart = [];
