@@ -451,12 +451,12 @@
 <div class="checkout-overlay" id="checkoutModal">
   <div class="checkout-box">
     <div class="checkout-header">
-      <h2>🚚 Checkout</h2>
+      <h2>Checkout</h2>
       <button class="checkout-close" onclick="closeCheckout()">✕</button>
     </div>
     <div class="checkout-body">
       <div>
-        <p class="checkout-section-title">📍 Delivery Details</p>
+        <p class="checkout-section-title">Delivery Details</p>
         <div style="display:flex;flex-direction:column;gap:0.8rem">
           <div class="co-row">
             <div class="co-field">
@@ -489,7 +489,7 @@
         </div>
       </div>
       <div>
-        <p class="checkout-section-title">🧾 Order Summary</p>
+        <p class="checkout-section-title"> Order Summary</p>
         <div class="co-summary" id="coSummary"></div>
       </div>
       <p class="co-error" id="coError"></p>
@@ -510,7 +510,7 @@
 
 <div class="login-prompt-overlay" id="loginPromptModal">
   <div class="login-prompt-box">
-    <div class="lp-icon">🔐</div>
+    <div class="lp-icon"></div>
     <h3>Members Only</h3>
     <p>Create a free account or log in to place orders and track your deliveries.</p>
     <div class="lp-btns">
@@ -613,13 +613,13 @@ function renderMenu(dishes) {
   grid.innerHTML = dishes.map(function(d) {
     var addBtn = isLoggedIn
       ? '<button class="btn-order" onclick=\'addToCart(' + JSON.stringify({id:d.id,name:d.name,price:parseFloat(d.price),image:d.image_path||''}) + ')\'>+ Add</button>'
-      : '<button class="btn-order-guest" onclick="document.getElementById(\'loginPromptModal\').classList.add(\'open\')">🔒 Login to Order</button>';
+      : '<button class="btn-order-guest" onclick="document.getElementById(\'loginPromptModal\').classList.add(\'open\')"> Login to Order</button>';
 
     return '<div class="menu-card">' +
       '<div class="menu-card-img">' +
         (d.image_path
-          ? '<img src="' + esc(d.image_path) + '" alt="' + esc(d.name) + '" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'<span style=font-size:3.5rem>🍽️</span>\'" />'
-          : '<span style="font-size:3.5rem">🍽️</span>') +
+          ? '<img src="' + esc(d.image_path) + '" alt="' + esc(d.name) + '" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'<span style=font-size:3.5rem></span>\'" />'
+          : '<span style="font-size:3.5rem"></span>') +
         (d.badge ? '<span class="menu-badge">' + esc(d.badge) + '</span>' : '') +
       '</div>' +
       '<div class="menu-card-body">' +
@@ -662,7 +662,7 @@ function addToCart(dish) {
   void fab.offsetWidth;
   fab.classList.add('bounce');
   fab.addEventListener('animationend', function(){ fab.classList.remove('bounce'); }, {once:true});
-  showToast('🛒 "' + dish.name + '" added!');
+  showToast(' "' + dish.name + '" added!');
 }
 
 function changeQty(id, delta) {
@@ -689,7 +689,7 @@ function updateCartUI() {
   badge.textContent   = qty;
   badge.style.display = qty > 0 ? 'flex' : 'none';
   if (!cart.length) {
-    items.innerHTML = '<div class="cart-empty-msg"><span>🍽️</span><p>Your cart is empty.<br/>Add some dishes!</p></div>';
+    items.innerHTML = '<div class="cart-empty-msg"><span></span><p>Your cart is empty.<br/>Add some dishes!</p></div>';
     foot.style.display = 'none'; return;
   }
   foot.style.display = '';
@@ -697,7 +697,7 @@ function updateCartUI() {
   items.innerHTML = cart.map(function(item) {
     return '<div class="cart-item">' +
       '<div class="cart-item-thumb">' +
-        (item.image ? '<img src="' + esc(item.image) + '" alt="' + esc(item.name) + '" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'🍽️\'"/>' : '🍽️') +
+        (item.image ? '<img src="' + esc(item.image) + '" alt="' + esc(item.name) + '" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'\'"/>' : '') +
       '</div>' +
       '<div class="cart-item-info">' +
         '<div class="cart-item-name">' + esc(item.name) + '</div>' +
@@ -807,7 +807,7 @@ async function loadOrders() {
           (o.delivery_address ? '<span>📍 ' + esc(o.delivery_address) + '</span>' : '') +
         '</div>' +
         '<div class="order-items-list">' + o.items.map(function(i){ return i.qty + '× ' + esc(i.dish_name) + ' — रू ' + parseFloat(i.price).toFixed(2); }).join('<br/>') + '</div>' +
-        (o.note ? '<p style="font-size:0.79rem;color:var(--muted);margin-bottom:0.5rem">📝 ' + esc(o.note) + '</p>' : '') +
+        (o.note ? '<p style="font-size:0.79rem;color:var(--muted);margin-bottom:0.5rem"> ' + esc(o.note) + '</p>' : '') +
         '<div class="order-total-line"><span>Total</span><span>रू ' + parseFloat(o.total).toFixed(2) + '</span></div>' +
         (canCancel ? '<div style="margin-top:0.8rem"><button class="btn-cancel-order" onclick="cancelOrder(' + o.id + ')">✕ Cancel Order</button></div>' : '') +
       '</div>';

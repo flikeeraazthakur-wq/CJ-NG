@@ -15,10 +15,23 @@ function refreshNavAuth() {
 
   authContainers.forEach(container => {
     if (user) {
+      // Build initials avatar
+      const initials = user.name.trim().split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
       container.innerHTML = `
-        <span class="nav-username">👋 ${user.name}</span>
-        ${user.is_admin ? `<a href="admin.html" class="btn-login" style="text-decoration:none;text-align:center">⚙️ Admin</a>` : ''}
-        <button class="btn-login" onclick="logout()">Logout</button>
+        <div class="nav-profile" id="navProfile" onclick="toggleProfileMenu(event)">
+          <div class="nav-avatar">${initials}</div>
+          <div class="nav-profile-dropdown" id="profileDropdown">
+            <div class="profile-drop-head">
+              <div class="profile-drop-avatar">${initials}</div>
+              <div>
+                <div class="profile-drop-name">${user.name}</div>
+                <div class="profile-drop-email">${user.email}</div>
+              </div>
+            </div>
+            ${user.is_admin ? `<a href="admin.html" class="profile-drop-item"> Admin Panel</a>` : ''}
+            <button class="profile-drop-item profile-drop-logout" onclick="logout()">↩ Log Out</button>
+          </div>
+        </div>
       `;
     } else {
       container.innerHTML = `
@@ -28,6 +41,17 @@ function refreshNavAuth() {
     }
   });
 }
+
+function toggleProfileMenu(e) {
+  e.stopPropagation();
+  const dropdown = document.getElementById('profileDropdown');
+  if (dropdown) dropdown.classList.toggle('open');
+}
+
+// Close profile dropdown when clicking outside
+document.addEventListener('click', () => {
+  document.querySelectorAll('.nav-profile-dropdown.open').forEach(d => d.classList.remove('open'));
+});
 
 function logout() {
   clearUser();
