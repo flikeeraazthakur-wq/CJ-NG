@@ -298,6 +298,8 @@
   .order-items-list { font-size:0.83rem; color:var(--muted); margin-bottom:0.6rem; line-height:1.9; }
   .order-delivery-info { font-size:0.8rem; color:var(--muted); margin-bottom:0.5rem; display:flex; gap:1.2rem; flex-wrap:wrap; }
   .order-total-line { display:flex; justify-content:space-between; font-weight:700; font-size:0.9rem; padding-top:0.65rem; border-top:1px solid rgba(0,0,0,0.06); }
+  .btn-cancel-order { padding:0.45rem 1.2rem; background:transparent; border:1.5px solid #c0392b; color:#c0392b; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:0.8rem; font-weight:700; cursor:pointer; transition:all 0.18s; }
+  .btn-cancel-order:hover { background:#c0392b; color:#fff; }
 
   .login-prompt-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); backdrop-filter:blur(3px); z-index:1200; align-items:center; justify-content:center; }
   .login-prompt-overlay.open { display:flex; }
@@ -625,7 +627,7 @@ function renderMenu(dishes) {
         '<h3 class="menu-card-name">' + esc(d.name) + '</h3>' +
         '<p class="menu-card-desc">' + esc(d.description) + '</p>' +
         '<div class="menu-card-foot">' +
-          '<span class="menu-price">$' + parseFloat(d.price).toFixed(2) + '</span>' +
+          '<span class="menu-price">रू ' + parseFloat(d.price).toFixed(2) + '</span>' +
           addBtn +
         '</div>' +
       '</div>' +
@@ -691,7 +693,7 @@ function updateCartUI() {
     foot.style.display = 'none'; return;
   }
   foot.style.display = '';
-  totEl.textContent  = '$' + getTotal().toFixed(2);
+  totEl.textContent  = 'रू ' + getTotal().toFixed(2);
   items.innerHTML = cart.map(function(item) {
     return '<div class="cart-item">' +
       '<div class="cart-item-thumb">' +
@@ -699,7 +701,7 @@ function updateCartUI() {
       '</div>' +
       '<div class="cart-item-info">' +
         '<div class="cart-item-name">' + esc(item.name) + '</div>' +
-        '<div class="cart-item-price">$' + (item.price * item.qty).toFixed(2) + '</div>' +
+        '<div class="cart-item-price">रू ' + (item.price * item.qty).toFixed(2) + '</div>' +
       '</div>' +
       '<div class="cart-qty-controls">' +
         '<button class="qty-btn" onclick="changeQty(' + item.id + ',-1)">−</button>' +
@@ -720,8 +722,8 @@ function openCheckout() {
   if (currentUser) document.getElementById('coName').value = currentUser.name || '';
   var summary = document.getElementById('coSummary');
   summary.innerHTML = cart.map(function(i){
-    return '<div class="co-summary-item"><span>' + i.qty + '× ' + esc(i.name) + '</span><span>$' + (i.price*i.qty).toFixed(2) + '</span></div>';
-  }).join('') + '<div class="co-total-row"><span class="co-total-label">Total</span><span class="co-total-val">$' + getTotal().toFixed(2) + '</span></div>';
+    return '<div class="co-summary-item"><span>' + i.qty + '× ' + esc(i.name) + '</span><span>रू ' + (i.price*i.qty).toFixed(2) + '</span></div>';
+  }).join('') + '<div class="co-total-row"><span class="co-total-label">Total</span><span class="co-total-val">रू ' + getTotal().toFixed(2) + '</span></div>';
   document.getElementById('coError').textContent = '';
   document.getElementById('checkoutModal').classList.add('open');
 }
@@ -793,6 +795,7 @@ async function loadOrders() {
       return;
     }
     listEl.innerHTML = data.orders.map(function(o) {
+      var canCancel = (o.status === 'pending' || o.status === 'confirmed');
       return '<div class="order-card status-' + esc(o.status) + '">' +
         '<div class="order-card-head">' +
           '<span class="order-card-id">Order #' + o.id + '</span>' +
@@ -803,13 +806,33 @@ async function loadOrders() {
           (o.phone            ? '<span>📞 ' + esc(o.phone) + '</span>' : '') +
           (o.delivery_address ? '<span>📍 ' + esc(o.delivery_address) + '</span>' : '') +
         '</div>' +
-        '<div class="order-items-list">' + o.items.map(function(i){ return i.qty + '× ' + esc(i.dish_name) + ' — $' + parseFloat(i.price).toFixed(2); }).join('<br/>') + '</div>' +
+        '<div class="order-items-list">' + o.items.map(function(i){ return i.qty + '× ' + esc(i.dish_name) + ' — रू ' + parseFloat(i.price).toFixed(2); }).join('<br/>') + '</div>' +
         (o.note ? '<p style="font-size:0.79rem;color:var(--muted);margin-bottom:0.5rem">📝 ' + esc(o.note) + '</p>' : '') +
-        '<div class="order-total-line"><span>Total</span><span>$' + parseFloat(o.total).toFixed(2) + '</span></div>' +
+        '<div class="order-total-line"><span>Total</span><span>रू ' + parseFloat(o.total).toFixed(2) + '</span></div>' +
+        (canCancel ? '<div style="margin-top:0.8rem"><button class="btn-cancel-order" onclick="cancelOrder(' + o.id + ')">✕ Cancel Order</button></div>' : '') +
       '</div>';
     }).join('');
   } catch(e) {
     listEl.innerHTML = '<p style="color:#c0392b">Could not load orders.</p>';
+  }
+}
+
+/* ── cancel order (user) ── */
+async function cancelOrder(orderId) {
+  if (!confirm('Cancel Order #' + orderId + '? This cannot be undone.')) return;
+  try {
+    var fd = new FormData();
+    fd.append('email', currentUser.email);
+    fd.append('order_id', orderId);
+    var data = await fetch('cancel_order.php', {method:'POST', body:fd}).then(function(r){ return r.json(); });
+    if (data.success) {
+      showToast('Order #' + orderId + ' cancelled.');
+      loadOrders();
+    } else {
+      showToast('❌ ' + (data.message || 'Could not cancel order.'));
+    }
+  } catch(e) {
+    showToast('❌ Server error. Try again.');
   }
 }
 
