@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Track Your Order — CJ-NJ Foods</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    :root {
+      --track-green: #22c55e;
+      --track-orange: #f59e0b;
+      --track-blue: #3b82f6;
+      --track-red: #ef4444;
+    }
+
+    body { background: var(--cream); }
+
+    .tracker-wrap {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: calc(var(--nav-h) + 2.5rem) 2rem 5rem;
+    }
+
+    .tracker-header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+    .tracker-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 900;
+      color: var(--dark);
+    }
+    .tracker-header h1 em { color: var(--warm); font-style: italic; }
+    .tracker-header p { color: var(--muted); margin-top: 0.4rem; font-size: 0.95rem; }
+
+    /* ── Order ID selector ── */
+    .order-selector {
+      background: #fff;
+      border-radius: 16px;
+      padding: 1.5rem 1.8rem;
+      box-shadow: 0 2px 18px rgba(0,0,0,0.07);
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .order-selector label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .order-selector select {
+      flex: 1;
+      min-width: 180px;
+      padding: 0.7rem 1rem;
+      border: 1.5px solid rgba(200,137,75,0.25);
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      background: var(--cream);
+      color: var(--dark);
+      cursor: pointer;
+    }
+    .btn-refresh {
+      padding: 0.7rem 1.5rem;
+      background: var(--dark);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .btn-refresh:hover { background: var(--warm); }
+    .btn-refresh.spinning .refresh-icon { animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .refresh-icon { display: inline-block; font-size: 1rem; }
+
+    /* ── Status card ── */
+    .status-card {
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 4px 28px rgba(0,0,0,0.09);
+      overflow: hidden;
+      margin-bottom: 2rem;
+    }
+
+    .status-card-top {
+      padding: 1.8rem 2rem 1.5rem;
+      background: var(--dark);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .status-card-top h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.35rem;
+      font-weight: 700;
+    }
+    .status-card-top h2 span { color: var(--warm); }
+    .order-date-label {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.55);
+      margin-top: 0.2rem;
+    }
+    .live-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(34,197,94,0.18);
+      border: 1px solid rgba(34,197,94,0.35);
+      color: #86efac;
+      padding: 0.4rem 0.9rem;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+    }
+    .live-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--track-green);
+      animation: livePulse 1.5s ease-in-out infinite;
+    }
+    @keyframes livePulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.4; transform: scale(0.8); }
+    }
+    .delivered-badge {
+      background: rgba(34,197,94,0.15);
+      border: 1px solid rgba(34,197,94,0.3);
+      color: #86efac;
+      padding: 0.4rem 0.9rem;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+    }
+    .cancelled-badge {
+      background: rgba(239,68,68,0.15);
+      border: 1px solid rgba(239,68,68,0.3);
+      color: #fca5a5;
+      padding: 0.4rem 0.9rem;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    /* ── Progress stepper ── */
+    .progress-section {
+      padding: 2rem 2rem 1.5rem;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+    .steps-track {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      position: relative;
+    }
+    .steps-track::before {
+      content: '';
+      position: absolute;
+      top: 22px;
+      left: 22px;
+      right: 22px;
+      height: 3px;
+      background: rgba(0,0,0,0.08);
+      border-radius: 3px;
+      z-index: 0;
+    }
+    .steps-fill {
+      position: absolute;
+      top: 22px;
+      left: 22px;
+      height: 3px;
+      background: linear-gradient(90deg, var(--warm), #e8a060);
+      border-radius: 3px;
+      z-index: 1;
+      transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.55rem;
+      z-index: 2;
+      flex: 1;
+      max-width: 90px;
+    }
+    .step-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: #f0ece6;
+      border: 3px solid #e0d8ce;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      transition: all 0.5s ease;
+      position: relative;
+    }
+    .step.done .step-icon {
+      background: var(--warm);
+      border-color: var(--warm);
+      box-shadow: 0 0 0 5px rgba(200,137,75,0.18);
+    }
+    .step.active .step-icon {
+      background: var(--dark);
+      border-color: var(--dark);
+      box-shadow: 0 0 0 6px rgba(26,26,26,0.12);
+      animation: stepPulse 2s ease-in-out infinite;
+    }
+    @keyframes stepPulse {
+      0%, 100% { box-shadow: 0 0 0 6px rgba(26,26,26,0.12); }
+      50%       { box-shadow: 0 0 0 10px rgba(26,26,26,0.06); }
+    }
+    .step.done .step-icon::after,
+    .step.active .step-icon::after {
+      content: '';
+      color: #fff;
+    }
+    .step-emoji { font-size: 1.2rem; }
+    .step.done .step-emoji,
+    .step.active .step-emoji { filter: brightness(10); }
+    .step-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.3;
+    }
+    .step.done .step-label  { color: var(--warm); }
+    .step.active .step-label { color: var(--dark); font-weight: 800; }
+
+    /* ── Status message ── */
+    .status-message-bar {
+      padding: 1.2rem 2rem;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+    .status-msg {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: linear-gradient(135deg, rgba(200,137,75,0.08), rgba(200,137,75,0.04));
+      border: 1.5px solid rgba(200,137,75,0.2);
+      border-radius: 12px;
+      padding: 0.9rem 1.2rem;
+    }
+    .status-msg-icon { font-size: 1.4rem; }
+    .status-msg-text { font-size: 0.92rem; font-weight: 600; color: var(--dark); }
+    .status-msg-sub  { font-size: 0.78rem; color: var(--muted); margin-top: 0.15rem; }
+
+    /* ── Map section ── */
+    .map-section {
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+    .map-section h3 {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+    .map-container {
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1.5px solid rgba(200,137,75,0.15);
+      position: relative;
+    }
+    .map-container iframe {
+      width: 100%;
+      height: 260px;
+      border: none;
+      display: block;
+    }
+    .map-pins-legend {
+      display: flex;
+      gap: 1.2rem;
+      margin-top: 0.9rem;
+      flex-wrap: wrap;
+    }
+    .map-pin-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+      color: var(--dark);
+      font-weight: 500;
+    }
+    .pin-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .pin-dot.restaurant { background: var(--warm); }
+    .pin-dot.delivery   { background: var(--track-blue); }
+
+    /* ── Delivery info ── */
+    .delivery-info-section {
+      padding: 1.5rem 2rem 2rem;
+    }
+    .delivery-info-section h3 {
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+    .delivery-info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+    .di-item {
+      background: var(--cream);
+      border-radius: 12px;
+      padding: 0.9rem 1.1rem;
+      display: flex;
+      gap: 0.7rem;
+      align-items: flex-start;
+    }
+    .di-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 0.1rem; }
+    .di-label { font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .di-val   { font-size: 0.88rem; font-weight: 600; color: var(--dark); margin-top: 0.15rem; }
+
+    /* ── Order items in tracker ── */
+    .order-items-section {
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 2px 18px rgba(0,0,0,0.07);
+      overflow: hidden;
+      margin-bottom: 2rem;
+    }
+    .order-items-section h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      padding: 1.3rem 1.8rem;
+      border-bottom: 1px solid rgba(0,0,0,0.07);
+    }
+    .tracker-item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.85rem 1.8rem;
+      border-bottom: 1px solid rgba(0,0,0,0.04);
+      font-size: 0.9rem;
+    }
+    .tracker-item-row:last-child { border-bottom: none; }
+    .tracker-item-name { font-weight: 600; color: var(--dark); }
+    .tracker-item-qty  { color: var(--muted); font-size: 0.8rem; margin-top: 0.15rem; }
+    .tracker-item-price { font-weight: 700; color: var(--warm); }
+    .tracker-total-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 1rem 1.8rem;
+      background: var(--cream);
+      font-weight: 800;
+      font-size: 0.95rem;
+    }
+
+    /* ── Notification timeline ── */
+    .notif-section {
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 2px 18px rgba(0,0,0,0.07);
+      overflow: hidden;
+      margin-bottom: 2rem;
+    }
+    .notif-section h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      padding: 1.3rem 1.8rem;
+      border-bottom: 1px solid rgba(0,0,0,0.07);
+    }
+    .notif-list { padding: 1rem 1.8rem 1.5rem; }
+    .notif-entry {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+      padding: 0.6rem 0;
+      position: relative;
+    }
+    .notif-entry + .notif-entry::before {
+      content: '';
+      position: absolute;
+      left: 15px;
+      top: -14px;
+      bottom: auto;
+      height: 14px;
+      width: 2px;
+      background: rgba(0,0,0,0.08);
+    }
+    .notif-dot-wrap {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 0.95rem;
+    }
+    .notif-dot-wrap.placed    { background: rgba(59,130,246,0.12); }
+    .notif-dot-wrap.confirmed { background: rgba(200,137,75,0.12); }
+    .notif-dot-wrap.preparing { background: rgba(245,158,11,0.12); }
+    .notif-dot-wrap.ready     { background: rgba(168,85,247,0.12); }
+    .notif-dot-wrap.onway     { background: rgba(6,182,212,0.12); }
+    .notif-dot-wrap.delivered { background: rgba(34,197,94,0.12); }
+    .notif-dot-wrap.cancelled { background: rgba(239,68,68,0.12); }
+    .notif-body .notif-title { font-size: 0.88rem; font-weight: 700; color: var(--dark); }
+    .notif-body .notif-time  { font-size: 0.75rem; color: var(--muted); margin-top: 0.1rem; }
+    .notif-body .notif-desc  { font-size: 0.8rem; color: var(--muted); margin-top: 0.15rem; }
+
+    /* ── Empty state ── */
+    .tracker-empty {
+      text-align: center;
+      padding: 5rem 2rem;
+      color: var(--muted);
+    }
+    .tracker-empty .te-icon { font-size: 4rem; margin-bottom: 1rem; }
+    .tracker-empty h3 { font-size: 1.1rem; font-weight: 700; color: var(--dark); margin-bottom: 0.5rem; }
+
+    /* ── No orders ── */
+    .no-orders-box {
+      background: #fff;
+      border-radius: 20px;
+      text-align: center;
+      padding: 4rem 2rem;
+      box-shadow: 0 2px 18px rgba(0,0,0,0.07);
+    }
+
+    @media (max-width: 600px) {
+      .tracker-wrap { padding-left: 1rem; padding-right: 1rem; }
+      .steps-track { gap: 0; }
+      .step { max-width: 60px; }
+      .step-icon { width: 36px; height: 36px; font-size: 1rem; }
+      .steps-track::before { top: 17px; left: 17px; right: 17px; }
+      .steps-fill { top: 17px; left: 17px; }
+      .status-card-top, .progress-section, .map-section, .delivery-info-section { padding-left: 1.2rem; padding-right: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav class="navbar">
+  <a href="homepage.html" class="nav-logo">
+    <img src="images/logo.png" alt="CJ-NJ Foods" class="nav-logo-img" onerror="this.style.display='none'"/>
+  </a>
+  <ul class="nav-links">
+    <li><a href="homepage.html">Home</a></li>
+    <li><a href="menu.html">Menu</a></li>
+    <li><a href="menu.html?tab=orders">My Orders</a></li>
+    <li><a href="homepage.html#about">About</a></li>
+  </ul>
+  <div class="nav-auth"></div>
+  <button class="hamburger" id="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="homepage.html">Home</a>
+  <a href="menu.html">Menu</a>
+  <a href="menu.html?tab=orders">My Orders</a>
+  <a href="homepage.html#about">About Us</a>
+  <div class="nav-mobile-auth"></div>
+</div>
+
+<div class="tracker-wrap">
+  <div class="tracker-header">
+    <h1>Track Your <em>Order</em></h1>
+    <p>Live updates from our kitchen to your door</p>
+  </div>
+
+  <!-- Order selector -->
+  <div class="order-selector" id="orderSelectorWrap" style="display:none">
+    <label> Select Order</label>
+    <select id="orderSelect" onchange="loadSelectedOrder()">
+      <option value="">— Choose an order —</option>
+    </select>
+    <button class="btn-refresh" id="refreshBtn" onclick="refreshTracker()">
+      <span class="refresh-icon">⟳</span> Refresh
+    </button>
+  </div>
+
+  <!-- Main content area -->
+  <div id="trackerContent">
+    <div class="no-orders-box">
+      <div style="font-size:3.5rem;margin-bottom:1rem">⏳</div>
+      <h3 style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;margin-bottom:0.5rem">Loading your orders…</h3>
+      <p style="color:var(--muted);font-size:0.9rem">Please wait</p>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>© 2026 <span>CJ-NJ Foods</span>. All rights reserved.</p>
+</footer>
+
+<div class="modal-overlay" id="loginModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('loginModal')">&#x2715;</button>
+    <h2>Login</h2>
+    <p class="modal-error" id="loginModalError"></p>
+    <div class="modal-field"><label>Email</label><input type="email" id="loginEmail" placeholder="you@email.com"/></div>
+    <div class="modal-field"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••"/></div>
+    <button class="modal-submit" id="loginBtn">Login</button>
+  </div>
+</div>
+<div class="modal-overlay" id="signupModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('signupModal')">&#x2715;</button>
+    <h2>Sign Up</h2>
+    <p class="modal-error" id="signupModalError"></p>
+    <div class="modal-field"><label>Name</label><input type="text" id="signupName" placeholder="Your name"/></div>
+    <div class="modal-field"><label>Email</label><input type="email" id="signupEmail" placeholder="you@email.com"/></div>
+    <div class="modal-field"><label>Password</label><input type="password" id="signupPassword" placeholder="••••••••"/></div>
+    <button class="modal-submit" id="signupBtn">Sign Up</button>
+  </div>
+</div>
+
+<script src="script.js"></script>
+<script>
+/* ── CONFIG ── */
+const RESTAURANT = {
+  name: 'CJ-NJ Foods — Herald College, Naxal',
+  lat: 27.7153,
+  lng: 85.3243,
+  mapQuery: 'Herald+College+Naxal+Kathmandu'
+};
+
+const STATUS_STEPS = ['placed','confirmed','preparing','ready','delivered'];
+
+const STATUS_META = {
+  placed:    { emoji:'', label:'Order Placed',   sub:'We received your order!',                  color:'#3b82f6' },
+  confirmed: { emoji:'', label:'Confirmed',       sub:'Your order is confirmed by our team.',     color:'#f59e0b' },
+  preparing: { emoji:'', label:'Preparing',      sub:'Our chefs are cooking your food.',         color:'#f59e0b' },
+  ready:     { emoji:'', label:'Ready',           sub:'Your order is packed and ready to go!',   color:'#8b5cf6' },
+  delivered: { emoji:'', label:'Delivered',       sub:'Enjoy your meal! Bon appétit!',            color:'#22c55e' },
+  cancelled: { emoji:'', label:'Cancelled',       sub:'This order was cancelled.',               color:'#ef4444' },
+  pending:   { emoji:'', label:'Pending',         sub:'Waiting for admin confirmation…',         color:'#6b7280' }
+};
+
+const STEP_DISPLAY = [
+  { key:'placed', label:'Placed'},
+  { key:'confirmed', label:'Confirmed'},
+  { key:'preparing', label:'Preparing'},
+  { key:'ready', label:'Ready'},
+  { key:'delivered', label:'Delivered'}
+];
+
+let allOrders = [];
+let selectedOrderId = null;
+let autoRefreshTimer = null;
+
+/* ── Init ── */
+window.addEventListener('load', async function() {
+  refreshNavAuth();
+  const user = getUser();
+  if (!user) {
+    document.getElementById('trackerContent').innerHTML = `
+      <div class="no-orders-box">
+        <div style="font-size:3.5rem;margin-bottom:1rem"></div>
+        <h3 style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;margin-bottom:0.5rem">Please log in</h3>
+        <p style="color:var(--muted);font-size:0.9rem;margin-bottom:1.5rem">You need to be logged in to track your orders.</p>
+        <button onclick="openModal('loginModal')" style="padding:0.7rem 2rem;background:var(--dark);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:700;cursor:pointer;font-size:0.9rem">Log In</button>
+      </div>`;
+    return;
+  }
+  await fetchOrders();
+
+  // Check URL param for order id
+  const params = new URLSearchParams(window.location.search);
+  const urlOrderId = params.get('order_id');
+  if (urlOrderId) {
+    document.getElementById('orderSelect').value = urlOrderId;
+    loadSelectedOrder();
+  }
+
+  // Auto-refresh every 30s for active orders
+  autoRefreshTimer = setInterval(silentRefresh, 30000);
+});
+
+async function fetchOrders() {
+  const user = getUser();
+  if (!user) return;
+  try {
+    const data = await fetch('get_orders.php?email=' + encodeURIComponent(user.email)).then(r => r.json());
+    if (!data.success) throw new Error();
+    allOrders = data.orders;
+    populateSelector();
+  } catch(e) {
+    document.getElementById('trackerContent').innerHTML = `<div class="no-orders-box"><div style="font-size:2.5rem">⚠️</div><p style="margin-top:1rem;color:#c0392b">Could not load orders. Please try again.</p></div>`;
+  }
+}
+
+function populateSelector() {
+  const sel = document.getElementById('orderSelect');
+  const wrap = document.getElementById('orderSelectorWrap');
+
+  if (!allOrders.length) {
+    document.getElementById('trackerContent').innerHTML = `
+      <div class="no-orders-box">
+        <div style="font-size:3.5rem;margin-bottom:1rem">📭</div>
+        <h3 style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;margin-bottom:0.5rem">No orders yet!</h3>
+        <p style="color:var(--muted);font-size:0.9rem;margin-bottom:1.5rem">Place your first order from our menu.</p>
+        <a href="menu.html" style="padding:0.7rem 2rem;background:var(--dark);color:#fff;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:700;text-decoration:none;font-size:0.9rem">Browse Menu</a>
+      </div>`;
+    return;
+  }
+
+  wrap.style.display = 'flex';
+  sel.innerHTML = '<option value="">— Choose an order —</option>';
+  allOrders.forEach(o => {
+    const meta = STATUS_META[o.status] || STATUS_META.pending;
+    const opt = document.createElement('option');
+    opt.value = o.id;
+    opt.textContent = `Order #${o.id} — ${meta.emoji} ${cap(o.status)} — रू ${parseFloat(o.total).toFixed(2)}`;
+    sel.appendChild(opt);
+  });
+
+  // Auto-select most recent active order
+  const active = allOrders.find(o => !['delivered','cancelled'].includes(o.status));
+  const toSelect = active || allOrders[0];
+  if (toSelect) {
+    sel.value = toSelect.id;
+    selectedOrderId = toSelect.id;
+    renderTracker(toSelect);
+  } else {
+    document.getElementById('trackerContent').innerHTML = '<div class="tracker-empty"><div class="te-icon">📋</div><h3>Select an order above</h3><p>Choose from the dropdown to see tracking details.</p></div>';
+  }
+}
+
+function loadSelectedOrder() {
+  const sel = document.getElementById('orderSelect');
+  const id = parseInt(sel.value);
+  if (!id) {
+    document.getElementById('trackerContent').innerHTML = '<div class="tracker-empty"><div class="te-icon">📋</div><h3>Select an order</h3><p>Choose an order from the dropdown above.</p></div>';
+    return;
+  }
+  selectedOrderId = id;
+  const order = allOrders.find(o => o.id == id);
+  if (order) renderTracker(order);
+}
+
+async function refreshTracker() {
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('spinning');
+  await fetchOrders();
+  if (selectedOrderId) {
+    const order = allOrders.find(o => o.id == selectedOrderId);
+    if (order) renderTracker(order);
+  }
+  btn.classList.remove('spinning');
+  showToast('Order status refreshed!');
+}
+
+async function silentRefresh() {
+  await fetchOrders();
+  if (selectedOrderId) {
+    const order = allOrders.find(o => o.id == selectedOrderId);
+    if (order) renderTracker(order);
+  }
+}
+
+function renderTracker(order) {
+  const status = order.status || 'pending';
+  const meta = STATUS_META[status] || STATUS_META.pending;
+  const isCancelled = status === 'cancelled';
+  const isDelivered = status === 'delivered';
+  const isActive    = !isCancelled && !isDelivered;
+
+  // Calculate step progress
+  const stepIdx = STATUS_STEPS.indexOf(status === 'pending' ? 'placed' : status);
+  const fillPct  = isCancelled ? 0 : stepIdx < 0 ? 0 : (stepIdx / (STATUS_STEPS.length - 1)) * 100;
+
+  // Build step HTML
+  const stepsHtml = STEP_DISPLAY.map((s, i) => {
+    const si = STATUS_STEPS.indexOf(s.key);
+    const isDone   = !isCancelled && si < stepIdx;
+    const isActive = !isCancelled && si === stepIdx;
+    return `<div class="step ${isDone ? 'done' : ''} ${isActive ? 'active' : ''}">
+      <div class="step-icon"><span class="step-emoji">${s.emoji}</span></div>
+      <span class="step-label">${s.label}</span>
+    </div>`;
+  }).join('');
+
+  // Build notification timeline
+  const notifHtml = buildTimeline(order);
+
+  // Map embed — show directions from restaurant (Herald College, Naxal) to customer address
+  const deliveryAddr   = encodeURIComponent((order.delivery_address || 'Kathmandu') + ', Nepal');
+  const restaurantAddr = encodeURIComponent('Herald College Naxal Kathmandu Nepal');
+  // Use directions embed if not cancelled/delivered, otherwise just show restaurant pin
+  const mapEmbedUrl = (isActive)
+    ? `https://maps.google.com/maps?saddr=${restaurantAddr}&daddr=${deliveryAddr}&t=m&z=13&output=embed`
+    : `https://maps.google.com/maps?q=${RESTAURANT.mapQuery}&t=m&z=15&output=embed&iwloc=near`;
+
+  // Items HTML
+  const itemsHtml = (order.items || []).map(i =>
+    `<div class="tracker-item-row">
+      <div><div class="tracker-item-name">${esc(i.dish_name)}</div><div class="tracker-item-qty">Qty: ${i.qty}</div></div>
+      <div class="tracker-item-price">रू ${(parseFloat(i.price) * i.qty).toFixed(2)}</div>
+    </div>`
+  ).join('');
+
+  const statusBadge = isDelivered
+    ? `<span class="delivered-badge">✓ Delivered</span>`
+    : isCancelled
+    ? `<span class="cancelled-badge">✕ Cancelled</span>`
+    : `<span class="live-badge"><span class="live-dot"></span>LIVE</span>`;
+
+  document.getElementById('trackerContent').innerHTML = `
+    <!-- Status card -->
+    <div class="status-card">
+      <div class="status-card-top">
+        <div>
+          <h2>Order <span>#${order.id}</span></h2>
+          <div class="order-date-label">Placed on ${formatDate(order.created_at)}</div>
+        </div>
+        ${statusBadge}
+      </div>
+
+      ${!isCancelled ? `
+      <div class="progress-section">
+        <div class="steps-track">
+          <div class="steps-fill" style="width: calc(${fillPct}% - 22px * ${fillPct/100 * 0.5})"></div>
+          ${stepsHtml}
+        </div>
+      </div>` : ''}
+
+      <div class="status-message-bar">
+        <div class="status-msg">
+          <div class="status-msg-icon">${meta.emoji}</div>
+          <div>
+            <div class="status-msg-text">${meta.label}</div>
+            <div class="status-msg-sub">${meta.sub}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="map-section">
+        <h3> ${isActive ? 'Delivery Route' : ' Restaurant Location'}</h3>
+        <div class="map-container">
+          <iframe src="${mapEmbedUrl}" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="map-pins-legend">
+          <div class="map-pin-item"><span class="pin-dot restaurant"></span>  CJ-NJ Foods — Herald College, Naxal, Kathmandu</div>
+          <div class="map-pin-item"><span class="pin-dot delivery"></span>  Delivery to: ${esc(order.delivery_address || 'N/A')}</div>
+        </div>
+      </div>
+
+      <div class="delivery-info-section">
+        <h3>Delivery Details</h3>
+        <div class="delivery-info-grid">
+          <div class="di-item"><span class="di-icon"></span><div><div class="di-label">Name</div><div class="di-val">${esc(order.user_name || '—')}</div></div></div>
+          <div class="di-item"><span class="di-icon"></span><div><div class="di-label">Phone</div><div class="di-val">${esc(order.phone || '—')}</div></div></div>
+          <div class="di-item"><span class="di-icon"></span><div><div class="di-label">Address</div><div class="di-val">${esc(order.delivery_address || '—')}</div></div></div>
+          ${order.note ? `<div class="di-item"><span class="di-icon"></span><div><div class="di-label">Note</div><div class="di-val">${esc(order.note)}</div></div></div>` : ''}
+        </div>
+      </div>
+    </div>
+
+    <!-- Order items -->
+    <div class="order-items-section">
+      <h3> Your Order</h3>
+      ${itemsHtml}
+      <div class="tracker-total-row">
+        <span>Total</span>
+        <span style="color:var(--warm)">रू ${parseFloat(order.total).toFixed(2)}</span>
+      </div>
+    </div>
+
+    <!-- Notification timeline -->
+    <div class="notif-section">
+      <h3> Order Updates</h3>
+      <div class="notif-list">${notifHtml}</div>
+    </div>
+  `;
+
+  // Animate fill bar after paint
+  requestAnimationFrame(() => {
+    const fill = document.querySelector('.steps-fill');
+    if (fill) {
+      fill.style.width = '0px';
+      requestAnimationFrame(() => {
+        fill.style.width = `calc(${fillPct}% - 22px)`;
+      });
+    }
+  });
+}
+
+function buildTimeline(order) {
+  const status = order.status;
+  const events = [];
+  const placed = order.created_at;
+
+  const pushEvent = (cls, emoji, title, desc, time) => {
+    events.push(`
+      <div class="notif-entry">
+        <div class="notif-dot-wrap ${cls}">${emoji}</div>
+        <div class="notif-body">
+          <div class="notif-title">${title}</div>
+          ${desc ? `<div class="notif-desc">${desc}</div>` : ''}
+          <div class="notif-time">${time}</div>
+        </div>
+      </div>`);
+  };
+
+  const ORDER_PROGRESS = ['pending','confirmed','preparing','ready','delivered'];
+  const statusIdx = ORDER_PROGRESS.indexOf(status);
+
+  pushEvent('placed', '', 'Order Placed', 'Your order has been received by CJ-NJ Foods.', formatDate(placed));
+
+  if (status === 'cancelled') {
+    pushEvent('cancelled', 'Order Cancelled', 'This order was cancelled.', 'Recently');
+    return events.join('');
+  }
+
+  if (statusIdx >= 1) pushEvent('confirmed', '', 'Order Confirmed', 'A staff member accepted your order.', 'After placing');
+  if (statusIdx >= 2) pushEvent('preparing', '', 'Preparing Your Food', 'Our chefs are working on your delicious meal!', 'In kitchen');
+  if (statusIdx >= 3) pushEvent('ready', '', 'Order Ready', 'Your order is packed and ready for pickup / dispatch.', 'Ready');
+  if (statusIdx >= 4) pushEvent('onway', '', 'Out for Delivery', 'Your order is on its way to you!', 'On the road');
+  if (status === 'delivered') pushEvent('delivered', '', 'Delivered!', 'Your food has arrived. Enjoy your meal!', 'Delivered');
+
+  if (events.length === 1 && status === 'pending') {
+    pushEvent('confirmed', 'Waiting for Confirmation', 'The restaurant will confirm your order shortly.', 'Pending…');
+  }
+
+  return events.join('');
+}
+
+/* ── utils ── */
+function esc(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+function formatDate(str) {
+  if (!str) return 'N/A';
+  const d = new Date(str);
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) + ' at ' + d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+}
+</script>
+</body>
+</html>
