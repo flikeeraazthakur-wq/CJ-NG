@@ -618,7 +618,11 @@
         <div class="co-summary" id="coSummary"></div>
       </div>
       <p class="co-error" id="coError"></p>
-      <button class="btn-place-order" id="placeOrderBtn" onclick="placeOrder()">Place Order </button>
+      <div style="display:flex;align-items:flex-start;gap:0.55rem;background:#fff8f0;border:1.5px solid rgba(200,137,75,0.3);border-radius:10px;padding:0.65rem 0.9rem;font-size:0.78rem;color:#8a5a1a;font-weight:500;line-height:1.5;">
+        <span style="font-size:1rem;flex-shrink:0;">⏱</span>
+        <span>Orders can only be cancelled within <strong>5 minutes</strong> of placing. After that, cancellation is no longer possible.</span>
+      </div>
+      <button class="btn-place-order" id="placeOrderBtn" onclick="placeOrder()">Place Order →</button>
     </div>
   </div>
 </div>
@@ -1047,9 +1051,25 @@ async function loadOrders() {
       listEl.innerHTML = '<div style="text-align:center;padding:4rem 1rem;color:var(--muted)"><div style="font-size:3.5rem;margin-bottom:0.8rem">📭</div><p style="font-weight:600;font-size:1rem">No orders yet! Explore the menu.</p><button onclick="switchTab(\'menu\')" style="margin-top:1.2rem;padding:0.65rem 2rem;background:var(--dark);color:#fff;border:none;border-radius:10px;font-family:\'DM Sans\',sans-serif;font-weight:700;cursor:pointer;font-size:0.9rem">Browse Menu</button></div>';
       return;
     }
+    var CANCEL_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+    var now = Date.now();
     listEl.innerHTML = data.orders.map(function(o) {
-      var canCancel = (o.status === 'pending' || o.status === 'confirmed');
-      return '<div class="order-card status-' + esc(o.status) + '">' +
+      var cancellableStatus = (o.status === 'pending' || o.status === 'confirmed');
+      var orderTime = new Date(o.created_at).getTime();
+      var elapsed   = now - orderTime;
+      var withinWindow = elapsed < CANCEL_WINDOW_MS;
+      var canCancel = cancellableStatus && withinWindow;
+      var secsLeft  = canCancel ? Math.floor((CANCEL_WINDOW_MS - elapsed) / 1000) : 0;
+      var cancelHtml = '';
+      if (cancellableStatus && withinWindow) {
+        cancelHtml = '<div style="margin-top:0.8rem;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap">' +
+          '<button class="btn-cancel-order" id="cancel-btn-' + o.id + '" onclick="cancelOrder(' + o.id + ')">✕ Cancel Order</button>' +
+          '<span id="cancel-timer-' + o.id + '" style="font-size:0.78rem;color:var(--muted);font-weight:600"></span>' +
+        '</div>';
+      } else if (cancellableStatus && !withinWindow) {
+        cancelHtml = '<p style="font-size:0.78rem;color:var(--muted);margin-top:0.6rem;font-weight:500">⏱ Cancellation window (5 min) has passed.</p>';
+      }
+      return '<div class="order-card status-' + esc(o.status) + '" data-order-id="' + o.id + '" data-created="' + esc(o.created_at) + '" data-status="' + esc(o.status) + '">' +
         '<div class="order-card-head">' +
           '<span class="order-card-id">Order #' + o.id + '</span>' +
           '<span class="order-card-date">' + formatDate(o.created_at) + '</span>' +
@@ -1062,12 +1082,47 @@ async function loadOrders() {
         '<div class="order-items-list">' + o.items.map(function(i){ return i.qty + '× ' + esc(i.dish_name) + ' — रू ' + parseFloat(i.price).toFixed(2); }).join('<br/>') + '</div>' +
         (o.note ? '<p style="font-size:0.79rem;color:var(--muted);margin-bottom:0.5rem"> ' + esc(o.note) + '</p>' : '') +
         '<div class="order-total-line"><span>Total</span><span>रू ' + parseFloat(o.total).toFixed(2) + '</span></div>' +
-        (canCancel ? '<div style="margin-top:0.8rem"><button class="btn-cancel-order" onclick="cancelOrder(' + o.id + ')">✕ Cancel Order</button></div>' : '') +
+        cancelHtml +
       '</div>';
     }).join('');
+
+    // Start live countdown timers for cancellable orders
+    startCancelCountdowns();
   } catch(e) {
     listEl.innerHTML = '<p style="color:#c0392b">Could not load orders.</p>';
   }
+}
+
+/* ── cancel countdown timers ── */
+var _cancelTimerInterval = null;
+function startCancelCountdowns() {
+  if (_cancelTimerInterval) clearInterval(_cancelTimerInterval);
+  var CANCEL_WINDOW_MS = 5 * 60 * 1000;
+  function tick() {
+    var now = Date.now();
+    document.querySelectorAll('.order-card[data-created]').forEach(function(card) {
+      var orderId = card.dataset.orderId;
+      var status  = card.dataset.status;
+      var orderTime = new Date(card.dataset.created).getTime();
+      var remaining = CANCEL_WINDOW_MS - (now - orderTime);
+      var timerEl = document.getElementById('cancel-timer-' + orderId);
+      var btnEl   = document.getElementById('cancel-btn-'  + orderId);
+      if (!timerEl || !btnEl) return;
+      if (remaining > 0) {
+        var m = Math.floor(remaining / 60000);
+        var s = Math.floor((remaining % 60000) / 1000);
+        timerEl.textContent = m + ':' + (s < 10 ? '0' : '') + s + ' left to cancel';
+      } else {
+        // Window expired — replace the cancel row with an expired note
+        var parent = btnEl.closest('div');
+        if (parent) {
+          parent.outerHTML = '<p style="font-size:0.78rem;color:var(--muted);margin-top:0.6rem;font-weight:500">⏱ Cancellation window (5 min) has passed.</p>';
+        }
+      }
+    });
+  }
+  tick();
+  _cancelTimerInterval = setInterval(tick, 1000);
 }
 
 /* ── cancel order (user) ── */

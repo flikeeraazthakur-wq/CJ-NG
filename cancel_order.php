@@ -22,7 +22,7 @@ if ($chk->num_rows === 0) {
 }
 
 // Make sure the order belongs to this user and is still cancellable
-$chk2 = $conn->prepare("SELECT status FROM orders WHERE id = ? AND user_email = ?");
+$chk2 = $conn->prepare("SELECT status, created_at FROM orders WHERE id = ? AND user_email = ?");
 $chk2->bind_param("is", $order_id, $email);
 $chk2->execute();
 $chk2->store_result();
@@ -32,12 +32,20 @@ if ($chk2->num_rows === 0) {
     exit;
 }
 
-$chk2->bind_result($status);
+$chk2->bind_result($status, $created_at);
 $chk2->fetch();
 
 $cancellable = ['pending', 'confirmed'];
 if (!in_array($status, $cancellable)) {
     echo json_encode(['success' => false, 'message' => 'Order cannot be cancelled at this stage (status: ' . $status . ')']);
+    exit;
+}
+
+// Enforce 5-minute cancellation window
+$order_time = strtotime($created_at);
+$elapsed    = time() - $order_time;
+if ($elapsed > 300) { // 300 seconds = 5 minutes
+    echo json_encode(['success' => false, 'message' => 'Cancellation window has expired. Orders can only be cancelled within 5 minutes of placing them.']);
     exit;
 }
 
